@@ -1,5 +1,21 @@
 import scala.math.min
 
+class ZList[A](val base :List[A]) {
+  def reduceTail(f : (A, A) => A) :List[A] = {
+    base match {
+      case Nil => throw new NoSuchElementException("tail of empty list")
+      case x :: y :: xs => x :: ((y :: xs) reduceLeft f) :: Nil
+      case xs => xs
+    }
+  }
+}
+
+object ZList {
+  implicit def listToZList[A](l :List[A]) :ZList[A] = new ZList[A](l)
+}
+
+import ZList._;
+
 object strings  {
 
 /*
@@ -37,13 +53,11 @@ object strings  {
    If the name doesn't have any spaces in it (i.e. it is a single
    name, e.g. Madonna, return the name as is.
  */
-
+  
   def getFormattedName(name : String) : String = {
-    val pieces = name split " "
-    pieces.length match {
-      case 0 => name
-      case 1 => name
-      case _ => pieces.last + ", " + (pieces.init reduceLeft { (l, r) => l + " " + r })
+    (name split " ").toList filter { _.length > 0 } match {
+      case Nil => ""
+      case xs => (xs.reverse reduceTail { (x, y) => y + " " + x }) reduceLeft { (l, r) => l + ", " + r }
     }
   }
 
